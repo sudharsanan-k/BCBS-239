@@ -1,0 +1,1389 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BCBS 239 Risk Data Governance Framework</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              500: '#0284c7',
+              600: '#0369a1',
+              700: '#075985',
+              800: '#0c4a6e',
+              900: '#082f49',
+              950: '#03192a',
+            },
+            accent: {
+              emerald: '#10b981',
+              cyan: '#06b6d4',
+              amber: '#f59e0b',
+              rose: '#f43f5e',
+              purple: '#8b5cf6'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Inter', sans-serif; }
+    .svg-node { transition: all 0.25s ease; cursor: pointer; }
+    .svg-node:hover rect, .svg-node:hover circle, .svg-node:hover polygon {
+      stroke: #38bdf8 !important;
+      stroke-width: 3px !important;
+      filter: drop-shadow(0 0 10px rgba(56, 189, 248, 0.6));
+    }
+    .node-selected rect, .node-selected circle, .node-selected polygon {
+      stroke: #38bdf8 !important;
+      stroke-width: 3px !important;
+      filter: drop-shadow(0 0 14px rgba(56, 189, 248, 0.9));
+    }
+    .pulse-line {
+      stroke-dasharray: 6;
+      animation: dash 20s linear infinite;
+    }
+    @keyframes dash {
+      to { stroke-dashoffset: -500; }
+    }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #082f49; }
+    ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #334155; }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      height: 18px;
+      width: 18px;
+      border-radius: 50%;
+      background: #38bdf8;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans selection:bg-cyan-500 selection:text-slate-950">
+
+  <!-- ================= HEADER SECTION ================= -->
+  <header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur sticky top-0 z-40 px-4 lg:px-8 py-3.5 flex items-center justify-between">
+    <div class="flex items-center space-x-3.5">
+      <div class="p-2.5 bg-cyan-500/10 border border-cyan-500/30 rounded-xl text-cyan-400">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+        </svg>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="text-lg font-bold tracking-tight text-white">BCBS 239 Risk Data Governance Framework</h1>
+          <span class="text-[10px] font-mono px-2 py-0.5 rounded font-semibold bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">Enterprise Standards</span>
+        </div>
+        <p class="text-xs text-slate-400">Prudential Governance for Risk Data Aggregation & Risk Reporting</p>
+      </div>
+    </div>
+
+    <div class="hidden sm:flex items-center gap-3">
+      <div class="flex items-center gap-2 text-xs font-mono px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-300">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        Basel Framework Active
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= NAVIGATION BAR ================= -->
+  <nav class="bg-slate-900 border-b border-slate-800 px-4 lg:px-8 py-2 sticky top-[65px] z-30 overflow-x-auto flex space-x-2">
+    <button onclick="switchTab('overview')" id="tab-overview" class="nav-tab active px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition bg-cyan-600 text-white">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+      <span>Overview & Scope</span>
+    </button>
+    <button onclick="switchTab('principles')" id="tab-principles" class="nav-tab px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition bg-slate-800 text-slate-300 hover:bg-slate-700">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 001 2h2a2 2 0 001-2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+      <span>14 Principles Explorer</span>
+    </button>
+    <button onclick="switchTab('concepts')" id="tab-concepts" class="nav-tab px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition bg-slate-800 text-slate-300 hover:bg-slate-700">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+      <span>Concepts & Examples</span>
+    </button>
+    <button onclick="switchTab('architecture')" id="tab-architecture" class="nav-tab px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition bg-slate-800 text-slate-300 hover:bg-slate-700">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"></path></svg>
+      <span>Architecture & Workflows</span>
+    </button>
+    <button onclick="switchTab('simulator')" id="tab-simulator" class="nav-tab px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition bg-slate-800 text-slate-300 hover:bg-slate-700">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+      <span>Compliance Simulator</span>
+    </button>
+  </nav>
+
+  <!-- ================= MAIN CONTENT CONTAINER ================= -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 lg:p-8 space-y-8">
+
+    <!-- ================= TAB 1: OVERVIEW & SCOPE ================= -->
+    <section id="sec-overview" class="tab-content space-y-6">
+      
+      <!-- Hero Banner -->
+      <div class="bg-gradient-to-r from-slate-900 via-brand-900 to-slate-900 p-6 lg:p-8 rounded-2xl border border-cyan-500/20 shadow-2xl relative overflow-hidden">
+        <div class="max-w-3xl space-y-4 relative z-10">
+          <div class="inline-flex items-center gap-2 px-3 py-1 bg-cyan-500/10 border border-cyan-500/30 rounded-full text-cyan-400 text-xs font-semibold">
+            <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+            Basel Committee Standard #239
+          </div>
+          <h2 class="text-2xl lg:text-3xl font-extrabold text-white tracking-tight">
+            BCBS 239: Risk Data Aggregation & Risk Reporting Standards
+          </h2>
+          <p class="text-slate-300 text-sm leading-relaxed">
+            The Basel Committee on Banking Supervision created BCBS 239 to strengthen risk management across global financial institutions. Banks must construct unified data architectures, eliminate manual spreadsheet steps, maintain transparent data lineage, and generate rapid stress risk reports during market crises.
+          </p>
+          <div class="pt-2 flex flex-wrap gap-3">
+            <button onclick="switchTab('concepts')" class="px-5 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-semibold transition shadow-lg shadow-cyan-600/20">
+              Explore Financial Risk Scenarios &rarr;
+            </button>
+            <button onclick="switchTab('principles')" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold border border-slate-700 transition">
+              View All 14 Principles
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Stats -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 space-y-1">
+          <div class="text-slate-400 text-xs font-medium">Primary Regulatory Scope</div>
+          <div class="text-xl font-bold text-white">G-SIBs & D-SIBs</div>
+          <p class="text-[11px] text-cyan-400">Systemically Important Institutions</p>
+        </div>
+        <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 space-y-1">
+          <div class="text-slate-400 text-xs font-medium">Core Governance Pillars</div>
+          <div class="text-xl font-bold text-emerald-400">4 Core Pillars</div>
+          <p class="text-[11px] text-slate-400">End-to-End Enterprise Control</p>
+        </div>
+        <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 space-y-1">
+          <div class="text-slate-400 text-xs font-medium">Total Regulatory Standards</div>
+          <div class="text-xl font-bold text-cyan-400">14 Mandates</div>
+          <p class="text-[11px] text-slate-400">Principles 1 through 14</p>
+        </div>
+        <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 space-y-1">
+          <div class="text-slate-400 text-xs font-medium">Stress Aggregation Target</div>
+          <div class="text-xl font-bold text-amber-400">&lt; 1 Hour</div>
+          <p class="text-[11px] text-slate-400">Ad-Hoc Crisis Exposure Target</p>
+        </div>
+      </div>
+
+      <!-- Core Context Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        <!-- Objective Card -->
+        <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <h3 class="text-base font-bold text-white flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span>
+              Why BCBS 239 Was Created
+            </h3>
+            <span class="text-xs font-mono px-2 py-0.5 bg-slate-800 text-slate-300 rounded">Crisis Origins</span>
+          </div>
+          <div class="space-y-3 text-slate-300 text-xs leading-relaxed">
+            <p>
+              During financial crises, banking leadership must determine total exposures across counterparties, asset classes, and regional subsidiaries. In 2008, siloed legacy databases and manual spreadsheet conversions delayed consolidated risk aggregation for days.
+            </p>
+            <p>
+              BCBS 239 fixes these vulnerabilities. It forces financial institutions to establish single source-of-truth risk repositories, automate reconciliation against accounting ledgers, and maintain continuous oversight over metadata and data lineage.
+            </p>
+          </div>
+        </div>
+
+        <!-- Four Pillars Overview Card -->
+        <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <h3 class="text-base font-bold text-white flex items-center gap-2">
+              <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+              The 4 Pillars Breakdown
+            </h3>
+            <span class="text-xs font-mono px-2 py-0.5 bg-slate-800 text-slate-300 rounded">Structural Scope</span>
+          </div>
+          <div class="space-y-2.5 text-xs">
+            <div class="p-2.5 bg-slate-950 rounded-xl border border-slate-800 flex items-start gap-3">
+              <span class="px-2 py-0.5 bg-cyan-500/10 text-cyan-400 font-mono font-bold rounded">P1-P2</span>
+              <div>
+                <strong class="text-white block">Pillar 1: Governance & IT Architecture</strong>
+                <span class="text-slate-400 text-[11px]">Board oversight, data stewardship roles, and resilient IT infrastructure.</span>
+              </div>
+            </div>
+            <div class="p-2.5 bg-slate-950 rounded-xl border border-slate-800 flex items-start gap-3">
+              <span class="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 font-mono font-bold rounded">P3-P6</span>
+              <div>
+                <strong class="text-white block">Pillar 2: Data Aggregation Capabilities</strong>
+                <span class="text-slate-400 text-[11px]">Data accuracy, group completeness, rapid timeliness, and scenario adaptability.</span>
+              </div>
+            </div>
+            <div class="p-2.5 bg-slate-950 rounded-xl border border-slate-800 flex items-start gap-3">
+              <span class="px-2 py-0.5 bg-amber-500/10 text-amber-400 font-mono font-bold rounded">P7-P11</span>
+              <div>
+                <strong class="text-white block">Pillar 3: Risk Reporting Practices</strong>
+                <span class="text-slate-400 text-[11px]">Precise outputs, comprehensive coverage, clear dashboards, and secure distribution.</span>
+              </div>
+            </div>
+            <div class="p-2.5 bg-slate-950 rounded-xl border border-slate-800 flex items-start gap-3">
+              <span class="px-2 py-0.5 bg-purple-500/10 text-purple-400 font-mono font-bold rounded">P12-P14</span>
+              <div>
+                <strong class="text-white block">Pillar 4: Supervisory Review & Cooperation</strong>
+                <span class="text-slate-400 text-[11px]">Regular regulatory audits, remediation programs, and cross-border cooperation.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ================= TAB 2: 14 PRINCIPLES EXPLORER ================= -->
+    <section id="sec-principles" class="tab-content hidden space-y-6">
+      
+      <!-- Filter and Search Toolbar -->
+      <div class="bg-slate-900 p-4 rounded-2xl border border-slate-800 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div class="flex flex-wrap gap-2" id="pillarFilterGroup">
+          <button onclick="filterPrinciples('all')" id="filter-all" class="filter-btn active px-3.5 py-1.5 rounded-lg text-xs font-semibold transition bg-cyan-600 text-white">All (14)</button>
+          <button onclick="filterPrinciples('p1')" id="filter-p1" class="filter-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold transition bg-slate-800 text-slate-300 hover:bg-slate-700">Pillar 1: Governance (1-2)</button>
+          <button onclick="filterPrinciples('p2')" id="filter-p2" class="filter-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold transition bg-slate-800 text-slate-300 hover:bg-slate-700">Pillar 2: Aggregation (3-6)</button>
+          <button onclick="filterPrinciples('p3')" id="filter-p3" class="filter-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold transition bg-slate-800 text-slate-300 hover:bg-slate-700">Pillar 3: Reporting (7-11)</button>
+          <button onclick="filterPrinciples('p4')" id="filter-p4" class="filter-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold transition bg-slate-800 text-slate-300 hover:bg-slate-700">Pillar 4: Supervision (12-14)</button>
+        </div>
+
+        <div class="relative w-full lg:w-72">
+          <input type="text" id="principleSearchInput" onkeyup="searchPrinciples()" placeholder="Search principles, metrics..." class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-4 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 font-sans">
+          <svg class="w-4 h-4 text-slate-500 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+        </div>
+      </div>
+
+      <!-- Principles Cards Grid -->
+      <div id="principlesContainer" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Dynamically rendered by JavaScript -->
+      </div>
+
+    </section>
+
+    <!-- ================= TAB 3: CONCEPTS DEEP DIVE & EXAMPLES ================= -->
+    <section id="sec-concepts" class="tab-content hidden space-y-6">
+      
+      <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-4">
+        <div>
+          <h3 class="text-lg font-bold text-white">Concepts Deep Dive & Practical Financial Examples</h3>
+          <p class="text-xs text-slate-400 mt-1">Real-world banking scenarios illustrating data governance breakdowns, audit risks, and compliant solutions.</p>
+        </div>
+
+        <!-- Concept Nav Selector -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          <button onclick="switchConcept('concept-lineage')" id="btn-concept-lineage" class="concept-tab active p-3 bg-slate-950 border border-cyan-500 rounded-xl text-left space-y-1 transition">
+            <span class="text-[10px] font-mono text-cyan-400 font-bold block">CONCEPT A</span>
+            <span class="text-xs font-bold text-white block">Lineage & Metadata</span>
+            <span class="text-[11px] text-slate-400 block">FX Volatility & Exposure</span>
+          </button>
+          <button onclick="switchConcept('concept-reconciliation')" id="btn-concept-reconciliation" class="concept-tab p-3 bg-slate-950 border border-slate-800 rounded-xl text-left space-y-1 transition hover:border-slate-700">
+            <span class="text-[10px] font-mono text-emerald-400 font-bold block">CONCEPT B</span>
+            <span class="text-xs font-bold text-white block">Reconciliation & MTM</span>
+            <span class="text-[11px] text-slate-400 block">Front Office vs Ledger</span>
+          </button>
+          <button onclick="switchConcept('concept-stress')" id="btn-concept-stress" class="concept-tab p-3 bg-slate-950 border border-slate-800 rounded-xl text-left space-y-1 transition hover:border-slate-700">
+            <span class="text-[10px] font-mono text-amber-400 font-bold block">CONCEPT C</span>
+            <span class="text-xs font-bold text-white block">Stress Aggregation</span>
+            <span class="text-[11px] text-slate-400 block">Intra-Day Liquidity Run</span>
+          </button>
+          <button onclick="switchConcept('concept-lei')" id="btn-concept-lei" class="concept-tab p-3 bg-slate-950 border border-slate-800 rounded-xl text-left space-y-1 transition hover:border-slate-700">
+            <span class="text-[10px] font-mono text-purple-400 font-bold block">CONCEPT D</span>
+            <span class="text-xs font-bold text-white block">LEI & Counterparty</span>
+            <span class="text-[11px] text-slate-400 block">Group-Wide Aggregation</span>
+          </button>
+        </div>
+
+        <!-- Concept Detail Panels -->
+        <div class="pt-2">
+          
+          <!-- Concept A Panel -->
+          <div id="concept-lineage" class="concept-panel space-y-5 bg-slate-950 p-6 rounded-xl border border-slate-800">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+              <div>
+                <span class="text-xs font-mono text-cyan-400 font-bold">CONCEPT A: PRINCIPLE 2 & 3</span>
+                <h4 class="text-base font-bold text-white">End-to-End Data Lineage & Metadata Traceability</h4>
+              </div>
+              <span class="px-2.5 py-1 bg-cyan-500/10 text-cyan-400 text-xs font-mono rounded border border-cyan-500/20">Financial Market Scenario</span>
+            </div>
+
+            <!-- Scenario Narrative -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+              <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 space-y-2">
+                <strong class="text-rose-400 font-mono block">1. Operational Problem</strong>
+                <p class="text-slate-300 leading-relaxed">
+                  During an extreme FX volatility spike, the Market Risk team reported a <strong>$120 Million counterparty exposure gap</strong> between trading desk spreadsheets and executive board packs.
+                </p>
+              </div>
+              <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 space-y-2">
+                <strong class="text-amber-400 font-mono block">2. Root Cause Analysis</strong>
+                <p class="text-slate-300 leading-relaxed">
+                  An intermediate risk analyst used an unauthorized local spreadsheet to manually adjust FX swap option delta factors without logging the formula change in the central metadata dictionary.
+                </p>
+              </div>
+              <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 space-y-2">
+                <strong class="text-emerald-400 font-mono block">3. BCBS 239 Solution</strong>
+                <p class="text-slate-300 leading-relaxed">
+                  The bank implemented an automated data lineage pipeline. Every transformation step from deal capture (Front Office) to risk engines is tracked automatically with immutable audit trails.
+                </p>
+              </div>
+            </div>
+
+            <!-- Step Walkthrough -->
+            <div class="space-y-2">
+              <h5 class="text-xs font-bold text-slate-200 uppercase font-mono">Technical Implementation Steps</h5>
+              <div class="space-y-2 text-xs">
+                <div class="p-3 bg-slate-900 rounded-xl border border-slate-800 flex items-center justify-between">
+                  <span class="text-slate-300"><strong class="text-cyan-400">Step 1:</strong> Trade capture in Trading System (FX Options)</span>
+                  <span class="font-mono text-slate-500">Source System</span>
+                </div>
+                <div class="p-3 bg-slate-900 rounded-xl border border-slate-800 flex items-center justify-between">
+                  <span class="text-slate-300"><strong class="text-cyan-400">Step 2:</strong> Automated Extraction & Delta Calculation (Golden Source Engine)</span>
+                  <span class="font-mono text-emerald-400">No Spreadsheets Allowed</span>
+                </div>
+                <div class="p-3 bg-slate-900 rounded-xl border border-slate-800 flex items-center justify-between">
+                  <span class="text-slate-300"><strong class="text-cyan-400">Step 3:</strong> Lineage verification against Enterprise Metadata Dictionary</span>
+                  <span class="font-mono text-cyan-400">100% Traceable</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Concept B Panel -->
+          <div id="concept-reconciliation" class="concept-panel hidden space-y-5 bg-slate-950 p-6 rounded-xl border border-slate-800">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+              <div>
+                <span class="text-xs font-mono text-emerald-400 font-bold">CONCEPT B: PRINCIPLE 3 & 7</span>
+                <h4 class="text-base font-bold text-white">Automated Reconciliation & Mark-to-Market Integrity</h4>
+              </div>
+              <span class="px-2.5 py-1 bg-emerald-500/10 text-emerald-400 text-xs font-mono rounded border border-emerald-500/20">Accounting & Credit Risk</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+              <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 space-y-2">
+                <strong class="text-rose-400 font-mono block">1. Operational Problem</strong>
+                <p class="text-slate-300 leading-relaxed">
+                  Front Office valuation systems and Credit Risk Mark-to-Market (MTM) calculations showed a <strong>$45 Million valuation mismatch</strong> for interest rate swap portfolios.
+                </p>
+              </div>
+              <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 space-y-2">
+                <strong class="text-amber-400 font-mono block">2. Root Cause Analysis</strong>
+                <p class="text-slate-300 leading-relaxed">
+                  Front Office systems used real-time SOFR discount curves, while Credit Risk systems evaluated collateralized swaps using legacy EONIA yield curve feeds.
+                </p>
+              </div>
+              <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 space-y-2">
+                <strong class="text-emerald-400 font-mono block">3. BCBS 239 Solution</strong>
+                <p class="text-slate-300 leading-relaxed">
+                  Deployed automated daily reconciliation scripts between the General Ledger and Credit Risk engines, raising automated alerts whenever valuations diverge by >0.01%.
+                </p>
+              </div>
+            </div>
+
+            <div class="p-4 bg-slate-900 rounded-xl border border-slate-800 text-xs space-y-2">
+              <div class="font-bold text-emerald-400 font-mono uppercase">Key Audit Metric:</div>
+              <p class="text-slate-300">
+                100% of risk metrics must reconcile automatically to financial ledger balances daily. Discrepancies above tolerance limits block report publishing automatically.
+              </p>
+            </div>
+          </div>
+
+          <!-- Concept C Panel -->
+          <div id="concept-stress" class="concept-panel hidden space-y-5 bg-slate-950 p-6 rounded-xl border border-slate-800">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+              <div>
+                <span class="text-xs font-mono text-amber-400 font-bold">CONCEPT C: PRINCIPLE 5 & 6</span>
+                <h4 class="text-base font-bold text-white">Rapid Stress Aggregation & Intra-Day Liquidity Monitoring</h4>
+              </div>
+              <span class="px-2.5 py-1 bg-amber-500/10 text-amber-400 text-xs font-mono rounded border border-amber-500/20">Crisis Response Scenario</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+              <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 space-y-2">
+                <strong class="text-rose-400 font-mono block">1. Operational Problem</strong>
+                <p class="text-slate-300 leading-relaxed">
+                  During a sudden regional bank run, regulators requested an ad-hoc report on <strong>total uncollateralized corporate deposits</strong> across 14 legal entities within 2 hours.
+                </p>
+              </div>
+              <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 space-y-2">
+                <strong class="text-amber-400 font-mono block">2. Root Cause Analysis</strong>
+                <p class="text-slate-300 leading-relaxed">
+                  Legacy batch systems required 36 hours to consolidate subsidiary data. Staff attempted manual consolidation in spreadsheets, introducing massive aggregation errors.
+                </p>
+              </div>
+              <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 space-y-2">
+                <strong class="text-emerald-400 font-mono block">3. BCBS 239 Solution</strong>
+                <p class="text-slate-300 leading-relaxed">
+                  Constructed an in-memory aggregation layer capable of querying group-wide liquidity positions across global entities in <strong>under 30 minutes</strong>.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Concept D Panel -->
+          <div id="concept-lei" class="concept-panel hidden space-y-5 bg-slate-950 p-6 rounded-xl border border-slate-800">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+              <div>
+                <span class="text-xs font-mono text-purple-400 font-bold">CONCEPT D: PRINCIPLE 1 & 4</span>
+                <h4 class="text-base font-bold text-white">Counterparty LEI Mismatch & Global Group Aggregation</h4>
+              </div>
+              <span class="px-2.5 py-1 bg-purple-500/10 text-purple-400 text-xs font-mono rounded border border-purple-500/20">Enterprise Data Governance</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+              <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 space-y-2">
+                <strong class="text-rose-400 font-mono block">1. Operational Problem</strong>
+                <p class="text-slate-300 leading-relaxed">
+                  A multinational corporate client held derivatives in London, term loans in New York, and trade credit in Singapore. Global credit limits were breached without detection.
+                </p>
+              </div>
+              <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 space-y-2">
+                <strong class="text-amber-400 font-mono block">2. Root Cause Analysis</strong>
+                <p class="text-slate-300 leading-relaxed">
+                  Regional branches used localized client identifiers instead of mandatory Legal Entity Identifiers (LEI), preventing central exposure aggregation engines from combining totals.
+                </p>
+              </div>
+              <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 space-y-2">
+                <strong class="text-emerald-400 font-mono block">3. BCBS 239 Solution</strong>
+                <p class="text-slate-300 leading-relaxed">
+                  Established a Chief Data Office mandate requiring global LEI alignment for all client onboarding, enabling instant parent-subsidiary risk rollup globally.
+                </p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ================= TAB 4: ARCHITECTURE & WORKFLOWS ================= -->
+    <section id="sec-architecture" class="tab-content hidden space-y-8">
+      
+      <!-- Diagram 1: Data Architecture Pipeline -->
+      <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-4">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div>
+            <h3 class="text-lg font-bold text-white">1. Interactive Risk Data Architecture Pipeline</h3>
+            <p class="text-xs text-slate-400 mt-1">Click any stage in the flow to inspect controls, audit pitfalls, and regulatory mappings.</p>
+          </div>
+          <button onclick="resetArchitectureView()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 rounded-lg border border-slate-700 transition self-start lg:self-auto">
+            Reset Selection
+          </button>
+        </div>
+
+        <!-- SVG Diagram Canvas -->
+        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 overflow-x-auto flex justify-center">
+          <svg id="architectureSvg" class="w-full max-w-5xl h-auto" viewBox="0 0 1000 380" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="grad-node" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#0f172a"/>
+                <stop offset="100%" stop-color="#03192a"/>
+              </linearGradient>
+              <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#38bdf8"/>
+              </marker>
+            </defs>
+
+            <!-- Pulse Connectors -->
+            <path class="pulse-line" d="M 150 200 L 220 200" stroke="#0284c7" stroke-width="2.5" marker-end="url(#arrow)"/>
+            <path class="pulse-line" d="M 340 200 L 410 200" stroke="#0284c7" stroke-width="2.5" marker-end="url(#arrow)"/>
+            <path class="pulse-line" d="M 530 200 L 600 200" stroke="#0284c7" stroke-width="2.5" marker-end="url(#arrow)"/>
+            <path class="pulse-line" d="M 720 200 L 790 200" stroke="#0284c7" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+            <!-- Feedback Loop Line -->
+            <path d="M 850 140 C 850 80, 470 80, 470 140" stroke="#38bdf8" stroke-width="2" stroke-dasharray="4" fill="none" marker-end="url(#arrow)"/>
+
+            <!-- Node 1 -->
+            <g class="svg-node" id="node-source" onclick="inspectNode('source')">
+              <rect x="30" y="140" width="120" height="120" rx="12" fill="url(#grad-node)" stroke="#334155" stroke-width="2"/>
+              <text x="90" y="165" fill="#38bdf8" text-anchor="middle" font-size="10" font-weight="bold" font-family="monospace">STAGE 1</text>
+              <text x="90" y="190" fill="#ffffff" text-anchor="middle" font-size="12" font-weight="bold">Source Systems</text>
+              <text x="90" y="208" fill="#ffffff" text-anchor="middle" font-size="12" font-weight="bold">& Feeds</text>
+              <text x="90" y="235" fill="#94a3b8" text-anchor="middle" font-size="9">Trades, Loans, GL</text>
+            </g>
+
+            <!-- Node 2 -->
+            <g class="svg-node" id="node-lineage" onclick="inspectNode('lineage')">
+              <rect x="220" y="140" width="120" height="120" rx="12" fill="url(#grad-node)" stroke="#334155" stroke-width="2"/>
+              <text x="280" y="165" fill="#38bdf8" text-anchor="middle" font-size="10" font-weight="bold" font-family="monospace">STAGE 2</text>
+              <text x="280" y="190" fill="#ffffff" text-anchor="middle" font-size="12" font-weight="bold">Data Integration</text>
+              <text x="280" y="208" fill="#ffffff" text-anchor="middle" font-size="12" font-weight="bold">& Metadata</text>
+              <text x="280" y="235" fill="#94a3b8" text-anchor="middle" font-size="9">ETL & Reconcile</text>
+            </g>
+
+            <!-- Node 3 -->
+            <g class="svg-node" id="node-repository" onclick="inspectNode('repository')">
+              <rect x="410" y="140" width="120" height="120" rx="12" fill="url(#grad-node)" stroke="#334155" stroke-width="2"/>
+              <text x="470" y="165" fill="#38bdf8" text-anchor="middle" font-size="10" font-weight="bold" font-family="monospace">STAGE 3</text>
+              <text x="470" y="190" fill="#ffffff" text-anchor="middle" font-size="12" font-weight="bold">Golden Source</text>
+              <text x="470" y="208" fill="#ffffff" text-anchor="middle" font-size="12" font-weight="bold">Risk Data Repository</text>
+              <text x="470" y="235" fill="#94a3b8" text-anchor="middle" font-size="9">Unified Repository</text>
+            </g>
+
+            <!-- Node 4 -->
+            <g class="svg-node" id="node-analytics" onclick="inspectNode('analytics')">
+              <rect x="600" y="140" width="120" height="120" rx="12" fill="url(#grad-node)" stroke="#334155" stroke-width="2"/>
+              <text x="660" y="165" fill="#38bdf8" text-anchor="middle" font-size="10" font-weight="bold" font-family="monospace">STAGE 4</text>
+              <text x="660" y="190" fill="#ffffff" text-anchor="middle" font-size="12" font-weight="bold">Risk Analytics &</text>
+              <text x="660" y="208" fill="#ffffff" text-anchor="middle" font-size="12" font-weight="bold">Aggregation Engine</text>
+              <text x="660" y="235" fill="#94a3b8" text-anchor="middle" font-size="9">RWA, VaR, Scenarios</text>
+            </g>
+
+            <!-- Node 5 -->
+            <g class="svg-node" id="node-reporting" onclick="inspectNode('reporting')">
+              <rect x="790" y="140" width="120" height="120" rx="12" fill="url(#grad-node)" stroke="#334155" stroke-width="2"/>
+              <text x="850" y="165" fill="#38bdf8" text-anchor="middle" font-size="10" font-weight="bold" font-family="monospace">STAGE 5</text>
+              <text x="850" y="190" fill="#ffffff" text-anchor="middle" font-size="12" font-weight="bold">Executive & Reg</text>
+              <text x="850" y="208" fill="#ffffff" text-anchor="middle" font-size="12" font-weight="bold">Reporting Layer</text>
+              <text x="850" y="235" fill="#94a3b8" text-anchor="middle" font-size="9">Dashboards & Returns</text>
+            </g>
+
+            <!-- Governance Banner -->
+            <g class="svg-node" id="node-governance" onclick="inspectNode('governance')">
+              <rect x="280" y="20" width="440" height="50" rx="10" fill="#0f172a" stroke="#38bdf8" stroke-width="2"/>
+              <text x="500" y="42" fill="#38bdf8" text-anchor="middle" font-size="11" font-weight="bold">ENTERPRISE GOVERNANCE & BOARD OVERVIEW</text>
+              <text x="500" y="58" fill="#94a3b8" text-anchor="middle" font-size="9">Board Approval | Data Governance Policies | Audit Controls</text>
+            </g>
+          </svg>
+        </div>
+
+        <!-- Inspector Pane -->
+        <div id="architectureInspector" class="bg-slate-950 p-5 rounded-xl border border-cyan-500/30 space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+            <span id="inspectStageTag" class="px-2.5 py-0.5 bg-cyan-500/10 text-cyan-400 text-xs font-mono font-bold rounded border border-cyan-500/20">STAGE DETAILS</span>
+            <span class="text-xs text-slate-400 font-mono">Select a component above to inspect</span>
+          </div>
+
+          <h4 id="inspectTitle" class="text-base font-bold text-white">Select an architecture component in the diagram above</h4>
+          <p id="inspectDescription" class="text-xs text-slate-300 leading-relaxed">
+            Click any architecture stage in the diagram to inspect operational controls, requirements, mapped principles, and common audit risks.
+          </p>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+            <div class="bg-slate-900 p-3.5 rounded-xl border border-slate-800 space-y-1.5">
+              <span class="text-[11px] font-bold text-emerald-400 font-mono uppercase">Operational Controls</span>
+              <ul id="inspectControls" class="text-xs text-slate-300 space-y-1 list-disc list-inside"></ul>
+            </div>
+            <div class="bg-slate-900 p-3.5 rounded-xl border border-slate-800 space-y-1.5">
+              <span class="text-[11px] font-bold text-amber-400 font-mono uppercase">Audit Risks to Avoid</span>
+              <ul id="inspectPitfalls" class="text-xs text-slate-300 space-y-1 list-disc list-inside"></ul>
+            </div>
+          </div>
+
+          <div class="pt-2 flex flex-wrap gap-2 items-center">
+            <span class="text-xs text-slate-400 font-mono">Mapped Principles:</span>
+            <div id="inspectPrinciples" class="flex flex-wrap gap-2"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Diagram 2: Risk Incident Escalation Flowchart -->
+      <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-4">
+        <div>
+          <h3 class="text-lg font-bold text-white">2. Interactive Risk Incident Escalation Flowchart</h3>
+          <p class="text-xs text-slate-400 mt-1">Workflow when data quality anomalies or limit breaches occur.</p>
+        </div>
+
+        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 overflow-x-auto flex justify-center">
+          <svg class="w-full max-w-5xl h-auto" viewBox="0 0 1000 220" xmlns="http://www.w3.org/2000/svg">
+            
+            <g class="svg-node">
+              <rect x="20" y="50" width="160" height="90" rx="10" fill="#0f172a" stroke="#0284c7" stroke-width="2"/>
+              <text x="100" y="75" fill="#38bdf8" text-anchor="middle" font-size="10" font-weight="bold" font-family="monospace">STEP 1</text>
+              <text x="100" y="98" fill="#ffffff" text-anchor="middle" font-size="11" font-weight="bold">Data Anomaly Trigger</text>
+              <text x="100" y="118" fill="#94a3b8" text-anchor="middle" font-size="8">Breach or Discrepancy</text>
+            </g>
+
+            <path class="pulse-line" d="M 180 95 L 220 95" stroke="#0284c7" stroke-width="2" marker-end="url(#arrow)"/>
+
+            <g class="svg-node">
+              <rect x="220" y="50" width="160" height="90" rx="10" fill="#0f172a" stroke="#0284c7" stroke-width="2"/>
+              <text x="300" y="75" fill="#38bdf8" text-anchor="middle" font-size="10" font-weight="bold" font-family="monospace">STEP 2</text>
+              <text x="300" y="98" fill="#ffffff" text-anchor="middle" font-size="11" font-weight="bold">Steward Notification</text>
+              <text x="300" y="118" fill="#94a3b8" text-anchor="middle" font-size="8">Owner Assigned</text>
+            </g>
+
+            <path class="pulse-line" d="M 380 95 L 420 95" stroke="#0284c7" stroke-width="2" marker-end="url(#arrow)"/>
+
+            <!-- Decision Diamond -->
+            <g class="svg-node">
+              <polygon points="500,30 570,95 500,160 430,95" fill="#0f172a" stroke="#10b981" stroke-width="2"/>
+              <text x="500" y="90" fill="#ffffff" text-anchor="middle" font-size="10" font-weight="bold">Resolved</text>
+              <text x="500" y="105" fill="#10b981" text-anchor="middle" font-size="9" font-weight="bold">&lt; 1 Hour?</text>
+            </g>
+
+            <path class="pulse-line" d="M 570 95 L 620 95" stroke="#10b981" stroke-width="2" marker-end="url(#arrow)"/>
+            <text x="590" y="87" fill="#10b981" font-size="9" font-weight="bold">YES</text>
+
+            <path d="M 500 160 L 500 190 L 300 190 L 300 140" stroke="#f43f5e" stroke-width="1.5" stroke-dasharray="4" fill="none" marker-end="url(#arrow)"/>
+            <text x="420" y="182" fill="#f43f5e" font-size="9" font-weight="bold">NO: Escalate to CRO</text>
+
+            <g class="svg-node">
+              <rect x="620" y="50" width="160" height="90" rx="10" fill="#0f172a" stroke="#0284c7" stroke-width="2"/>
+              <text x="700" y="75" fill="#38bdf8" text-anchor="middle" font-size="10" font-weight="bold" font-family="monospace">STEP 3</text>
+              <text x="700" y="98" fill="#ffffff" text-anchor="middle" font-size="11" font-weight="bold">Adjust Golden Source</text>
+              <text x="700" y="118" fill="#94a3b8" text-anchor="middle" font-size="8">Audit Log Updated</text>
+            </g>
+
+            <path class="pulse-line" d="M 780 95 L 820 95" stroke="#0284c7" stroke-width="2" marker-end="url(#arrow)"/>
+
+            <g class="svg-node">
+              <rect x="820" y="50" width="160" height="90" rx="10" fill="#0f172a" stroke="#38bdf8" stroke-width="2"/>
+              <text x="900" y="75" fill="#38bdf8" text-anchor="middle" font-size="10" font-weight="bold" font-family="monospace">STEP 4</text>
+              <text x="900" y="98" fill="#ffffff" text-anchor="middle" font-size="11" font-weight="bold">Publish Clean Return</text>
+              <text x="900" y="118" fill="#94a3b8" text-anchor="middle" font-size="8">Board & Regulators</text>
+            </g>
+
+          </svg>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ================= TAB 5: COMPLIANCE SIMULATOR ================= -->
+    <section id="sec-simulator" class="tab-content hidden space-y-6">
+      
+      <div class="bg-slate-900 p-6 rounded-2xl border border-slate-800 space-y-6">
+        <div>
+          <h3 class="text-lg font-bold text-white">Risk Data Quality & Compliance Simulator</h3>
+          <p class="text-xs text-slate-400 mt-1">Adjust data controls to evaluate institutional BCBS 239 health scores and regulatory penalty exposure.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          <!-- Sliders -->
+          <div class="lg:col-span-2 bg-slate-950 p-6 rounded-xl border border-slate-800 space-y-5">
+            
+            <div class="space-y-2">
+              <div class="flex justify-between text-xs">
+                <span class="font-bold text-white">1. Lineage Completeness (% without manual adjustments)</span>
+                <span id="sim-val-accuracy" class="font-mono text-cyan-400 font-bold">85%</span>
+              </div>
+              <input type="range" id="sim-accuracy" min="0" max="100" value="85" oninput="updateSimulator()" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+              <p class="text-[11px] text-slate-400">Proportion of risk fields automatically mapped from trading capture to final reporting.</p>
+            </div>
+
+            <div class="space-y-2">
+              <div class="flex justify-between text-xs">
+                <span class="font-bold text-white">2. Global Entity Group Coverage (% Subsidiaries Covered)</span>
+                <span id="sim-val-completeness" class="font-mono text-cyan-400 font-bold">92%</span>
+              </div>
+              <input type="range" id="sim-completeness" min="0" max="100" value="92" oninput="updateSimulator()" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+              <p class="text-[11px] text-slate-400">Percentage of legal entities and off-balance-sheet items captured in risk engines.</p>
+            </div>
+
+            <div class="space-y-2">
+              <div class="flex justify-between text-xs">
+                <span class="font-bold text-white">3. Stress Scenario Aggregation Latency (Hours required)</span>
+                <span id="sim-val-timeliness" class="font-mono text-cyan-400 font-bold">12 Hours</span>
+              </div>
+              <input type="range" id="sim-timeliness" min="1" max="72" value="12" oninput="updateSimulator()" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+              <p class="text-[11px] text-slate-400">Hours needed to aggregate total counterparty risk during a market stress event.</p>
+            </div>
+
+            <div class="space-y-2">
+              <div class="flex justify-between text-xs">
+                <span class="font-bold text-white">4. Ad-Hoc Query Flexibility (Hours to reconfigure parameters)</span>
+                <span id="sim-val-adaptability" class="font-mono text-cyan-400 font-bold">18 Hours</span>
+              </div>
+              <input type="range" id="sim-adaptability" min="1" max="96" value="18" oninput="updateSimulator()" class="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer">
+              <p class="text-[11px] text-slate-400">Time required to configure new regulatory stress testing scenario requests.</p>
+            </div>
+
+          </div>
+
+          <!-- Score Card -->
+          <div class="bg-slate-950 p-6 rounded-xl border border-cyan-500/30 flex flex-col justify-between space-y-6">
+            <div class="space-y-4">
+              <span class="text-xs font-mono font-bold text-cyan-400 uppercase tracking-wider">Compliance Rating</span>
+              
+              <div class="text-center p-5 bg-slate-900 rounded-2xl border border-slate-800">
+                <div id="simScoreNumber" class="text-4xl font-extrabold text-cyan-400 font-mono">84%</div>
+                <div id="simScoreStatus" class="text-xs font-semibold text-emerald-400 mt-1">PASSING GRADE (COMPLIANT)</div>
+              </div>
+
+              <div class="space-y-3 text-xs">
+                <div class="flex justify-between border-b border-slate-800/80 pb-2">
+                  <span class="text-slate-400">Crisis Readiness:</span>
+                  <span id="simReadinessVal" class="font-bold text-white font-mono">High</span>
+                </div>
+                <div class="flex justify-between border-b border-slate-800/80 pb-2">
+                  <span class="text-slate-400">Capital Penalty Risk:</span>
+                  <span id="simCapitalRiskVal" class="font-bold text-emerald-400 font-mono">Low</span>
+                </div>
+                <div class="flex justify-between border-b border-slate-800/80 pb-2">
+                  <span class="text-slate-400">Supervisory Review Action:</span>
+                  <span id="simAuditActionVal" class="font-bold text-white font-mono">Standard Audit</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-slate-900 p-3.5 rounded-xl border border-slate-800 text-xs text-slate-300 space-y-1">
+              <div class="font-bold text-cyan-400">Recommendation:</div>
+              <p id="simRecommendationText" class="text-[11px] text-slate-400 leading-relaxed">
+                Data quality metrics satisfy regulatory thresholds. Continue replacing legacy spreadsheet transformation steps.
+              </p>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ================= PRINCIPLE DETAIL MODAL ================= -->
+  <div id="principleModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-cyan-500/30 rounded-2xl max-w-2xl w-full p-6 space-y-5 shadow-2xl relative">
+      <button onclick="closeModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white p-1 rounded-lg">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+      </button>
+
+      <div class="flex items-center gap-2 border-b border-slate-800 pb-3">
+        <span id="modalCode" class="font-mono text-xs font-bold px-2.5 py-1 bg-cyan-500/10 text-cyan-400 rounded border border-cyan-500/20">Principle X</span>
+        <h3 id="modalTitle" class="text-lg font-bold text-white">Title</h3>
+      </div>
+
+      <div class="space-y-3">
+        <div>
+          <span class="text-[11px] font-bold text-cyan-400 font-mono uppercase">Direct Requirement</span>
+          <p id="modalRequirement" class="text-xs text-slate-300 leading-relaxed mt-1 bg-slate-950 p-3 rounded-xl border border-slate-800"></p>
+        </div>
+
+        <div>
+          <span class="text-[11px] font-bold text-emerald-400 font-mono uppercase">Key Performance Indicators (KPIs)</span>
+          <ul id="modalKpis" class="text-xs text-slate-300 space-y-1 list-disc list-inside mt-1"></ul>
+        </div>
+
+        <div>
+          <span class="text-[11px] font-bold text-amber-400 font-mono uppercase">Audit Verification Checklist</span>
+          <ul id="modalChecklist" class="text-xs text-slate-300 space-y-1 list-disc list-inside mt-1"></ul>
+        </div>
+      </div>
+
+      <div class="pt-2 flex justify-end">
+        <button onclick="closeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold border border-slate-700">
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= FOOTER SECTION ================= -->
+  <footer class="border-t border-slate-800 bg-slate-900/90 py-6 px-4 lg:px-8 mt-auto text-xs text-slate-400">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="space-y-1 text-center sm:text-left">
+        <div class="text-slate-200 font-bold">BCBS 239 Risk Data Governance Framework</div>
+        <p class="text-slate-400 text-[11px]">Prudential Risk Management & Governance Reference</p>
+      </div>
+
+      <!-- MANDATORY FOOTER CREDIT -->
+      <div class="text-slate-300 font-mono text-xs bg-slate-950 border border-slate-800 px-4 py-2.5 rounded-xl text-center sm:text-right">
+        Prompt Developer: <span class="text-cyan-400 font-bold">Sudharsanan k, Risk Analyst</span> | <a href="mailto:casudharsanan.k@gmail.com" class="text-cyan-400 hover:underline font-bold">casudharsanan.k@gmail.com</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ================= JAVASCRIPT LOGIC ================= -->
+  <script>
+    /* Data Structure: 14 BCBS 239 Principles */
+    const PRINCIPLES = [
+      {
+        id: 1,
+        code: "Principle 1",
+        pillar: "p1",
+        pillarName: "Pillar 1: Governance & Infrastructure",
+        title: "Governance Framework",
+        summary: "The Board of Directors and Senior Management must explicitly review, approve, and oversee the risk data governance framework.",
+        requirement: "Assign explicit ownership for risk data domains. Data stewardship roles must exist across all legal entities. The Board must approve annual risk data budgets.",
+        kpis: [
+          "Annual Board approval of Risk Data Strategy.",
+          "100% of risk data domains assigned to executive stewards.",
+          "Zero critical governance findings in internal audits."
+        ],
+        checklist: [
+          "Does a formal Board-approved Data Governance Charter exist?",
+          "Are risk data issues escalated directly to the Chief Risk Officer?"
+        ],
+        diagramNode: "governance"
+      },
+      {
+        id: 2,
+        code: "Principle 2",
+        pillar: "p1",
+        pillarName: "Pillar 1: Governance & Infrastructure",
+        title: "Data Architecture & IT Infrastructure",
+        summary: "Banks must build integrated data architectures that remain operational during severe market stress events.",
+        requirement: "Build golden source data repositories. Maintain automated enterprise data lineage from transactional feeds to reporting outputs.",
+        kpis: [
+          ">99.9% uptime for core risk data calculation engines.",
+          "End-to-end data lineage mapped for all core metrics.",
+          "Zero manual spreadsheet steps in core data processing pipelines."
+        ],
+        checklist: [
+          "Does the IT architecture operate smoothly during crisis spikes?",
+          "Are standard enterprise data dictionaries enforced globally?"
+        ],
+        diagramNode: "lineage"
+      },
+      {
+        id: 3,
+        code: "Principle 3",
+        pillar: "p2",
+        pillarName: "Pillar 2: Risk Data Aggregation Capabilities",
+        title: "Accuracy & Integrity",
+        summary: "Risk data must be accurate, reliable, and reconciled automatically against financial accounting ledgers.",
+        requirement: "Automate data extraction and reconciliation. Eliminate manual spreadsheet adjustments. Deploy real-time data quality monitoring.",
+        kpis: [
+          "100% automated reconciliation between Risk and General Ledger figures.",
+          "<0.1% manual override rate in daily processing.",
+          "Real-time exception dashboard active for data validation failures."
+        ],
+        checklist: [
+          "Are manual data adjustments logged, justified, and audited?",
+          "Does automated data validation run at input points?"
+        ],
+        diagramNode: "repository"
+      },
+      {
+        id: 4,
+        code: "Principle 4",
+        pillar: "p2",
+        pillarName: "Pillar 2: Risk Data Aggregation Capabilities",
+        title: "Enterprise Completeness",
+        summary: "Risk data must capture all material exposure areas across all legal entities, asset classes, and regions.",
+        requirement: "Include all global subsidiaries, off-balance-sheet items, and emerging portfolios in centralized risk databases.",
+        kpis: [
+          "100% group legal entity coverage in aggregate reports.",
+          "Zero unmapped legacy subsidiary feeds.",
+          "Complete coverage of credit, market, liquidity, and operational risks."
+        ],
+        checklist: [
+          "Are newly acquired entities integrated within regulatory SLAs?",
+          "Are off-balance-sheet exposures captured daily?"
+        ],
+        diagramNode: "source"
+      },
+      {
+        id: 5,
+        code: "Principle 5",
+        pillar: "p2",
+        pillarName: "Pillar 2: Risk Data Aggregation Capabilities",
+        title: "Timeliness",
+        summary: "Banks must aggregate risk data rapidly during crisis periods and deliver daily exposure figures on schedule.",
+        requirement: "Optimize data processing pipelines to deliver daily risk figures early. Increase aggregation frequency during market stress.",
+        kpis: [
+          "Daily risk exposure reports delivered by 07:00 AM.",
+          "Intra-day aggregation capability (<1 hour) during crisis events.",
+          "Zero missed regulatory filing deadlines."
+        ],
+        checklist: [
+          "Can the bank aggregate total counterparty exposure during sudden market stress?",
+          "Are batch execution bottlenecks monitored continuously?"
+        ],
+        diagramNode: "analytics"
+      },
+      {
+        id: 6,
+        code: "Principle 6",
+        pillar: "p2",
+        pillarName: "Pillar 2: Risk Data Aggregation Capabilities",
+        title: "System Adaptability",
+        summary: "Risk architectures must support flexible, ad-hoc scenario queries requested by management or supervisors.",
+        requirement: "Design modular query structures that allow custom slicing of risk data across dynamic parameters on short notice.",
+        kpis: [
+          "<24 hours turnaround time for ad-hoc supervisory scenario requests.",
+          "Self-service BI capability active for risk analyst teams.",
+          "High adaptability rating in regulatory stress testing audits."
+        ],
+        checklist: [
+          "Can systems slice data by new geographic zones on demand?",
+          "Do stress testing tools support dynamic macroeconomic parameters?"
+        ],
+        diagramNode: "analytics"
+      },
+      {
+        id: 7,
+        code: "Principle 7",
+        pillar: "p3",
+        pillarName: "Pillar 3: Risk Reporting Practices",
+        title: "Reporting Accuracy",
+        summary: "Risk reports must accurately convey aggregated data without calculation errors or transposition mistakes.",
+        requirement: "Automate report generation. Reconcile report figures back to underlying golden source repositories.",
+        kpis: [
+          "Zero published report retractions or revisions due to calculation errors.",
+          "100% automated population of executive board packs.",
+          "Full auditability from executive charts back to atomic transactions."
+        ],
+        checklist: [
+          "Are report data discrepancies flagged before executive distribution?",
+          "Does a formal approval workflow exist for official filings?"
+        ],
+        diagramNode: "reporting"
+      },
+      {
+        id: 8,
+        code: "Principle 8",
+        pillar: "p3",
+        pillarName: "Pillar 3: Risk Reporting Practices",
+        title: "Report Comprehensiveness",
+        summary: "Reports must cover all material risk categories and include forward-looking stress scenarios.",
+        requirement: "Combine credit, market, liquidity, and operational risk metrics into unified reporting views. Include early warning indicators.",
+        kpis: [
+          "100% coverage of material risk categories in monthly Board packs.",
+          "Integration of forward-looking early warning metrics.",
+          "Clear exposure concentration summaries by sector and region."
+        ],
+        checklist: [
+          "Do reports detail concentrations by counterparty and sector?",
+          "Does qualitative analysis accompany quantitative charts?"
+        ],
+        diagramNode: "reporting"
+      },
+      {
+        id: 9,
+        code: "Principle 9",
+        pillar: "p3",
+        pillarName: "Pillar 3: Risk Reporting Practices",
+        title: "Clarity & Usefulness",
+        summary: "Reports must present clear, concise, and actionable insights tailored to specific management audiences.",
+        requirement: "Use standard terminology, visual dashboards, clear heatmaps, and executive summaries to highlight limit breaches.",
+        kpis: [
+          "100% executive satisfaction rating for report clarity.",
+          "Standard visual heatmaps deployed across all business units.",
+          "Zero ambiguous metric definitions in executive packs."
+        ],
+        checklist: [
+          "Do summaries highlight key limit breaches clearly?",
+          "Are technical terms defined in an enterprise glossary?"
+        ],
+        diagramNode: "reporting"
+      },
+      {
+        id: 10,
+        code: "Principle 10",
+        pillar: "p3",
+        pillarName: "Pillar 3: Risk Reporting Practices",
+        title: "Reporting Frequency",
+        summary: "Management must establish clear reporting schedules and increase distribution frequency during stress conditions.",
+        requirement: "Automate schedule tracking. Enable real-time alert triggers for risk appetite breaches.",
+        kpis: [
+          "100% on-time report distribution adherence.",
+          "Immediate escalation (<1 hour) for critical risk limit breaches.",
+          "Rapid shift capability to daily or intra-day crisis reporting."
+        ],
+        checklist: [
+          "Are reporting frequencies adjusted during market volatility?",
+          "Does senior management receive immediate alerts for limit breaches?"
+        ],
+        diagramNode: "reporting"
+      },
+      {
+        id: 11,
+        code: "Principle 11",
+        pillar: "p3",
+        pillarName: "Pillar 3: Risk Reporting Practices",
+        title: "Secure Distribution",
+        summary: "Reports must reach designated decision-makers securely while preserving strict confidentiality.",
+        requirement: "Enforce role-based access controls, secure encryption channels, and confidential user authorization protocols.",
+        kpis: [
+          "Zero data security breaches or unauthorized disclosures.",
+          "100% role-based access compliance in quarterly access audits.",
+          "Encrypted transmission channels enforced for regulatory returns."
+        ],
+        checklist: [
+          "Are dashboard user permissions audited quarterly?",
+          "Are regulatory files encrypted during transmission?"
+        ],
+        diagramNode: "reporting"
+      },
+      {
+        id: 12,
+        code: "Principle 12",
+        pillar: "p4",
+        pillarName: "Pillar 4: Supervisory Review & Cooperation",
+        title: "Supervisory Review",
+        summary: "Prudential supervisors regularly audit and evaluate a bank's risk data aggregation capabilities.",
+        requirement: "Maintain documentation, submit regular self-assessments, and participate in regulatory thematic audits.",
+        kpis: [
+          "High compliance score in supervisory BCBS 239 thematic audits.",
+          "Zero major regulatory enforcement orders.",
+          "On-time submission of self-assessment updates."
+        ],
+        checklist: [
+          "Does internal audit review BCBS 239 readiness annually?",
+          "Are audit findings incorporated into the remediation plan?"
+        ],
+        diagramNode: "governance"
+      },
+      {
+        id: 13,
+        code: "Principle 13",
+        pillar: "p4",
+        pillarName: "Pillar 4: Supervisory Review & Cooperation",
+        title: "Remediation Measures",
+        summary: "Supervisors enforce corrective actions and capital add-ons if data capabilities fall short of standards.",
+        requirement: "Establish dedicated remediation budgets, clear executive accountability, and milestone tracking.",
+        kpis: [
+          "100% milestone delivery rate on regulatory commitments.",
+          "Zero missed audit issue remediation deadlines.",
+          "Active CRO oversight of remediation program office."
+        ],
+        checklist: [
+          "Is a dedicated program office managing data remediation?",
+          "Does the Board review remediation progress monthly?"
+        ],
+        diagramNode: "governance"
+      },
+      {
+        id: 14,
+        code: "Principle 14",
+        pillar: "p4",
+        pillarName: "Pillar 4: Supervisory Review & Cooperation",
+        title: "Home/Host Cooperation",
+        summary: "Regulators share assessment findings across national borders to ensure group-wide compliance.",
+        requirement: "Harmonize data governance standards across foreign legal entities and respect cross-border data laws.",
+        kpis: [
+          "Full regulatory alignment across foreign legal entities.",
+          "Zero cross-border data transfer legal disputes.",
+          "Standardized risk reporting formats across foreign branches."
+        ],
+        checklist: [
+          "Do foreign branch risk architectures conform to group standards?",
+          "Are cross-border privacy laws respected in central data lakes?"
+        ],
+        diagramNode: "governance"
+      }
+    ];
+
+    /* Data Structure: Architecture Node Details */
+    const ARCHITECTURE_NODES = {
+      source: {
+        stage: "STAGE 1",
+        title: "Source Systems & Feeds",
+        description: "Captures raw trades, loan schedules, derivative positions, general ledger balances, and market feeds across all global subsidiaries.",
+        controls: [
+          "Input data validation scripts at point of entry.",
+          "Unique global position identifiers (LEI, CUSIP, UTI).",
+          "Automated capture of off-balance-sheet commitments."
+        ],
+        pitfalls: [
+          "Uncaptured legacy trading databases in foreign branches.",
+          "Inconsistent asset coding schemas across business units.",
+          "Manual batch uploads creating data delays."
+        ],
+        principles: [4]
+      },
+      lineage: {
+        stage: "STAGE 2",
+        title: "Data Integration & Metadata",
+        description: "Enforces enterprise metadata schemas, automated extraction scripts, data transformation rules, and end-to-end lineage tracking.",
+        controls: [
+          "Automated ETL reconciliation against financial accounting ledgers.",
+          "Metadata catalog mapping inputs to reporting outputs.",
+          "Data quality failure alert triggers."
+        ],
+        pitfalls: [
+          "Spreadsheet transformations severing data lineage.",
+          "Unreconciled figures between risk models and general ledgers.",
+          "Undocumented transformation rules in legacy code."
+        ],
+        principles: [2, 3]
+      },
+      repository: {
+        stage: "STAGE 3",
+        title: "Golden Source Risk Repository",
+        description: "Centralized enterprise data lake and warehouse acting as the single source of truth for aggregated exposure metrics.",
+        controls: [
+          "Standardized enterprise data model across all business units.",
+          "High-availability system architecture with disaster recovery.",
+          "Real-time data quality monitoring dashboards."
+        ],
+        pitfalls: [
+          "Siloed database copies defeating single source of truth.",
+          "Incomplete historical position retention for long-term modeling.",
+          "Unclear data stewardship assignments for counterparty fields."
+        ],
+        principles: [3, 4]
+      },
+      analytics: {
+        stage: "STAGE 4",
+        title: "Risk Analytics & Aggregation Engine",
+        description: "Runs enterprise aggregation calculations, risk-weighted asset (RWA) metrics, Value-at-Risk (VaR), and stress scenario simulations.",
+        controls: [
+          "Intra-day aggregation engine for high market volatility events.",
+          "Flexible ad-hoc scenario query structures.",
+          "Model governance validation for all risk algorithms."
+        ],
+        pitfalls: [
+          "Inability to run custom stress queries within 24 hours.",
+          "Rigid aggregation logic unable to slice metrics by new regions.",
+          "High computational latency during market stress events."
+        ],
+        principles: [5, 6]
+      },
+      reporting: {
+        stage: "STAGE 5",
+        title: "Executive & Regulatory Reporting Layer",
+        description: "Delivers interactive executive dashboards, risk limit breach alerts, Board packs, and official supervisory filings.",
+        controls: [
+          "100% automated report population eliminating manual formatting.",
+          "Role-based access controls and encryption for sensitive reports.",
+          "Clear visual heatmaps highlighting limit breaches."
+        ],
+        pitfalls: [
+          "Manual copy-pasting into executive board presentation slides.",
+          "Unexplained discrepancies between slides and regulatory returns.",
+          "Delayed distribution of risk breach alerts."
+        ],
+        principles: [7, 8, 9, 10, 11]
+      },
+      governance: {
+        stage: "GOVERNANCE OVERLAY",
+        title: "Enterprise Governance & Board Overview",
+        description: "Board oversight framework, executive data stewardship policies, and continuous interaction with prudential regulators.",
+        controls: [
+          "Annual Board approval of Risk Data Strategy and budgets.",
+          "Dedicated CRO-led data remediation program office.",
+          "Independent internal audit reviews of BCBS 239 readiness."
+        ],
+        pitfalls: [
+          "Passive Board oversight without technical challenge.",
+          "Inadequate budget allocated for replacing core IT systems.",
+          "Unresolved supervisory audit findings leading to capital penalty add-ons."
+        ],
+        principles: [1, 12, 13, 14]
+      }
+    };
+
+    /* Tab Switching Logic */
+    function switchTab(tabId) {
+      document.querySelectorAll('.nav-tab').forEach(btn => {
+        btn.classList.remove('bg-cyan-600', 'text-white');
+        btn.classList.add('bg-slate-800', 'text-slate-300');
+      });
+      const activeBtn = document.getElementById(`tab-${tabId}`);
+      if (activeBtn) {
+        activeBtn.classList.add('bg-cyan-600', 'text-white');
+        activeBtn.classList.remove('bg-slate-800', 'text-slate-300');
+      }
+
+      document.querySelectorAll('.tab-content').forEach(sec => sec.classList.add('hidden'));
+      const activeSec = document.getElementById(`sec-${tabId}`);
+      if (activeSec) activeSec.classList.remove('hidden');
+    }
+
+    /* Concept Selector Switcher */
+    function switchConcept(conceptId) {
+      document.querySelectorAll('.concept-tab').forEach(btn => {
+        btn.classList.remove('border-cyan-500');
+        btn.classList.add('border-slate-800');
+      });
+      const activeBtn = document.getElementById(`btn-${conceptId}`);
+      if (activeBtn) {
+        activeBtn.classList.add('border-cyan-500');
+        activeBtn.classList.remove('border-slate-800');
+      }
+
+      document.querySelectorAll('.concept-panel').forEach(p => p.classList.add('hidden'));
+      const activePanel = document.getElementById(conceptId);
+      if (activePanel) activePanel.classList.remove('hidden');
+    }
+
+    /* Architecture Diagram Inspector */
+    function inspectNode(key) {
+      const data = ARCHITECTURE_NODES[key];
+      if (!data) return;
+
+      document.querySelectorAll('#architectureSvg g').forEach(g => g.classList.remove('node-selected'));
+      const activeG = document.getElementById(`node-${key}`);
+      if (activeG) activeG.classList.add('node-selected');
+
+      document.getElementById('inspectStageTag').textContent = data.stage;
+      document.getElementById('inspectTitle').textContent = data.title;
+      document.getElementById('inspectDescription').textContent = data.description;
+
+      document.getElementById('inspectControls').innerHTML = data.controls.map(c => `<li>${c}</li>`).join('');
+      document.getElementById('inspectPitfalls').innerHTML = data.pitfalls.map(p => `<li>${p}</li>`).join('');
+
+      document.getElementById('inspectPrinciples').innerHTML = data.principles.map(pNum => {
+        const pObj = PRINCIPLES.find(p => p.id === pNum);
+        return `<span class="px-2.5 py-1 bg-cyan-500/10 text-cyan-400 text-xs font-mono font-bold rounded border border-cyan-500/20">${pObj ? pObj.code + ': ' + pObj.title : 'Principle ' + pNum}</span>`;
+      }).join('');
+    }
+
+    function resetArchitectureView() {
+      inspectNode('source');
+    }
+
+    /* Principles Explorer Rendering */
+    let currentPillarFilter = 'all';
+
+    function renderPrinciples() {
+      const container = document.getElementById('principlesContainer');
+      container.innerHTML = '';
+
+      const filtered = PRINCIPLES.filter(p => {
+        return (currentPillarFilter === 'all') || (p.pillar === currentPillarFilter);
+      });
+
+      filtered.forEach(p => {
+        const card = document.createElement('div');
+        card.className = "bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4 hover:border-slate-700 transition flex flex-col justify-between";
+        card.id = `principle-card-${p.id}`;
+
+        card.innerHTML = `
+          <div class="space-y-3">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div class="flex items-center gap-2">
+                <span class="font-mono text-xs font-bold px-2.5 py-1 bg-cyan-500/10 text-cyan-400 rounded border border-cyan-500/20">${p.code}</span>
+                <h4 class="font-bold text-white text-base">${p.title}</h4>
+              </div>
+              <span class="text-[11px] font-mono text-slate-400">${p.pillarName.split(':')[0]}</span>
+            </div>
+
+            <p class="text-xs text-slate-300 leading-relaxed bg-slate-950 p-3 rounded-xl border border-slate-800">${p.summary}</p>
+
+            <div class="space-y-1.5 pt-1">
+              <span class="text-[11px] font-bold text-cyan-400 font-mono uppercase">Operational Requirement</span>
+              <p class="text-xs text-slate-300 leading-relaxed">${p.requirement}</p>
+            </div>
+          </div>
+
+          <div class="pt-4 border-t border-slate-800 flex justify-between items-center text-xs">
+            <span class="text-slate-400 font-mono text-[11px]">Mapped Node: <strong class="text-cyan-400 capitalize">${p.diagramNode}</strong></span>
+            <button onclick="openModal(${p.id})" class="px-3 py-1.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-lg font-semibold transition flex items-center gap-1">
+              <span>View Details</span>
+              &rarr;
+            </button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function filterPrinciples(pillarKey) {
+      currentPillarFilter = pillarKey;
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('bg-cyan-600', 'text-white');
+        btn.classList.add('bg-slate-800', 'text-slate-300');
+      });
+      const activeBtn = document.getElementById(`filter-${pillarKey}`);
+      if (activeBtn) {
+        activeBtn.classList.add('bg-cyan-600', 'text-white');
+        activeBtn.classList.remove('bg-slate-800', 'text-slate-300');
+      }
+      renderPrinciples();
+    }
+
+    function searchPrinciples() {
+      const query = document.getElementById('principleSearchInput').value.toLowerCase();
+      document.querySelectorAll('#principlesContainer > div').forEach(card => {
+        const text = card.textContent.toLowerCase();
+        if (text.includes(query)) card.classList.remove('hidden');
+        else card.classList.add('hidden');
+      });
+    }
+
+    /* Modal Controller */
+    function openModal(id) {
+      const p = PRINCIPLES.find(item => item.id === id);
+      if (!p) return;
+
+      document.getElementById('modalCode').textContent = p.code;
+      document.getElementById('modalTitle').textContent = p.title;
+      document.getElementById('modalRequirement').textContent = p.requirement;
+
+      document.getElementById('modalKpis').innerHTML = p.kpis.map(k => `<li>${k}</li>`).join('');
+      document.getElementById('modalChecklist').innerHTML = p.checklist.map(c => `<li>${c}</li>`).join('');
+
+      document.getElementById('principleModal').classList.remove('hidden');
+    }
+
+    function closeModal() {
+      document.getElementById('principleModal').classList.add('hidden');
+    }
+
+    /* Data Quality Simulator Calculation */
+    function updateSimulator() {
+      const acc = parseInt(document.getElementById('sim-accuracy').value);
+      const comp = parseInt(document.getElementById('sim-completeness').value);
+      const timeHrs = parseInt(document.getElementById('sim-timeliness').value);
+      const adaptHrs = parseInt(document.getElementById('sim-adaptability').value);
+
+      document.getElementById('sim-val-accuracy').textContent = `${acc}%`;
+      document.getElementById('sim-val-completeness').textContent = `${comp}%`;
+      document.getElementById('sim-val-timeliness').textContent = `${timeHrs} Hours`;
+      document.getElementById('sim-val-adaptability').textContent = `${adaptHrs} Hours`;
+
+      const timeScore = Math.max(0, Math.min(100, Math.round(100 - ((timeHrs - 1) * 2))));
+      const adaptScore = Math.max(0, Math.min(100, Math.round(100 - ((adaptHrs - 12) * 1.2))));
+
+      const overall = Math.round((acc * 0.35) + (comp * 0.30) + (timeScore * 0.20) + (adaptScore * 0.15));
+
+      const numEl = document.getElementById('simScoreNumber');
+      const statusEl = document.getElementById('simScoreStatus');
+      numEl.textContent = `${overall}%`;
+
+      let readiness = "High";
+      let capitalRisk = "Low";
+      let action = "Standard Audit";
+      let text = "";
+
+      if (overall >= 80) {
+        statusEl.textContent = "PASSING GRADE (COMPLIANT)";
+        statusEl.className = "text-xs font-semibold text-emerald-400 mt-1";
+        numEl.className = "text-4xl font-extrabold text-cyan-400 font-mono";
+        readiness = "High";
+        capitalRisk = "Low";
+        action = "Standard Annual Review";
+        text = "Data quality metrics satisfy regulatory expectations. Continue replacing legacy spreadsheet transformation steps in secondary feeds.";
+      } else if (overall >= 60) {
+        statusEl.textContent = "CONDITIONAL PASS (REMEDIATION REQUIRED)";
+        statusEl.className = "text-xs font-semibold text-amber-400 mt-1";
+        numEl.className = "text-4xl font-extrabold text-amber-400 font-mono";
+        readiness = "Moderate";
+        capitalRisk = "Moderate Penalty Risk";
+        action = "Targeted Regulatory Inspection";
+        text = "Aggregation delays or spreadsheet steps increase risk during market stress events. Accelerate automated ETL pipeline deployment.";
+      } else {
+        statusEl.textContent = "SUPERVISORY BREACH (HIGH RISK)";
+        statusEl.className = "text-xs font-semibold text-rose-400 mt-1";
+        numEl.className = "text-4xl font-extrabold text-rose-400 font-mono";
+        readiness = "Unprepared for Crisis";
+        capitalRisk = "High Pillar 2 Capital Add-on Risk";
+        action = "Mandatory Remediation Order";
+        text = "Critical non-compliance detected. Data latency and low completeness expose the bank to supervisory capital penalties and formal remediation orders.";
+      }
+
+      document.getElementById('simReadinessVal').textContent = readiness;
+      
+      const capRiskEl = document.getElementById('simCapitalRiskVal');
+      capRiskEl.textContent = capitalRisk;
+      capRiskEl.className = overall >= 80 ? 'font-bold text-emerald-400 font-mono' : overall >= 60 ? 'font-bold text-amber-400 font-mono' : 'font-bold text-rose-400 font-mono';
+
+      document.getElementById('simAuditActionVal').textContent = action;
+      document.getElementById('simRecommendationText').textContent = text;
+    }
+
+    /* Page Initialization */
+    window.onload = function() {
+      renderPrinciples();
+      inspectNode('source');
+      updateSimulator();
+    };
+  </script>
+</body>
+</html>
